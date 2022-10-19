@@ -9,3 +9,9 @@ out/
 
 # Dotenv file
 .env
+
+# VSCode settings.
+.vscode/
+
+# Other stuff
+.DS_Store

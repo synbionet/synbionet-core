@@ -10,7 +10,7 @@ import "../IMarket.sol";
 /**
  * @notice Represents Intellectual Property and potentially many copyright (like) licenses.
  * A user can create an instance of this contract to assert ownership of their
- * IP (think NFT).  The address of this contract represents a globally unique identifier
+ * IP (think NFT).  For now, the address of this contract represents a globally unique identifier
  * for the IP.
  *
  * Through this contract an owner can mint and sell copyright licenses for the given IP.

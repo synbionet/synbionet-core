@@ -18,12 +18,11 @@ SynBioNet is a non-custodial market protocol designed to encourage and incentivi
 TODO
 
 ## Setup 
-We use Foundary and VSCode as our smart contract development toolchain.
+We use Foundary and VSCode (optional) as our smart contract development toolchain.
 * Install Foundary: https://book.getfoundry.sh/getting-started/installation
 * Install the Solidity plugin for VSCode: https://marketplace.visualstudio.com/items?itemName=JuanBlanco.solidity
-* Clone the repository
+* Clone this repository
 * From this directory, run `forge install`
-
 
 VSCode settings via `.vscode/setting.json`:
 ```json

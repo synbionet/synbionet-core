@@ -9,9 +9,9 @@ import "openzepplin/security/ReentrancyGuard.sol";
 import "openzepplin/token/ERC20/utils/SafeERC20.sol";
 import "openzepplin/utils/introspection/ERC165Checker.sol";
 
+import "./IMarket.sol";
 import "./tokens/BioToken.sol";
 import "./tokens/IntellectualProperty.sol";
-import "./IMarket.sol";
 
 /**
  * @title Market for Intelletual Property and Licenses
@@ -154,15 +154,10 @@ contract Market is IMarket, ReentrancyGuard {
      * - the biotoken xfer fails
      */
     function buyIP(address _nft) external nonReentrant {
-        // NOTE: we protect against reentry here as we're
-        // violating the check/effects/interaction pattern.
-        // probably overly-cautious...
-
         require(_nft != address(0), "Market: bad IP address");
 
         Product memory p = products[_nft];
         require(_nft == p.nft, "Market: product not found");
-        // TODO: require p.open...
         require(p.isIPForSale, "Market: IP is not for sale");
 
         IntellectualProperty ip = IntellectualProperty(p.nft);
@@ -212,10 +207,6 @@ contract Market is IMarket, ReentrancyGuard {
      * - the biotoken xfer fails
      */
     function buyLicense(address _nft, uint256 _qty) external nonReentrant {
-        // NOTE: we protect against reentry here as we're
-        // violating the check/effects/interaction pattern.
-        // probably overly-cautious...
-
         require(_nft != address(0), "Market: bad IP address");
 
         Product memory p = products[_nft];

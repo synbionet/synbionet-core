@@ -1,0 +1,19 @@
+{
+  "name": "@synbionet/contracts",
+  "author": "MITRE",
+  "license": "Apache-2.0",
+  "version": "1.0.0",
+  "description": "",
+  "files": [
+    "src/**/*.sol",
+    "build/contracts/**/*"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/synbionet/synbionet-core.git"
+  },
+  "bugs": {
+    "url": "https://github.com/synbionet/synbionet-core/issues"
+  },
+  "homepage": "https://github.com/synbionet/synbionet-core#readme"
+}

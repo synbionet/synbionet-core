@@ -1,7 +1,7 @@
 [profile.default]
 solc = "0.8.16"
 src = 'src'
-out = 'build'
+out = 'build/contracts'
 libs = ['lib']
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config

@@ -1,7 +1,10 @@
 # Compiler files
 cache/
 out/
-build/
+
+# 
+build/contracts/*.t.sol
+*.s.sol
 
 # Ignores development broadcast logs
 !/broadcast

@@ -5,18 +5,22 @@ import "forge-std/Test.sol";
 import "openzepplin/token/ERC1155/utils/ERC1155Holder.sol";
 
 import "../src/Factory.sol";
-import "../src/tokens/IntellectualProperty.sol";
+
+//import "../src/tokens/IntellectualProperty.sol";
+//import "../src/Market.sol";
+
+import "../src/tokens/BioAsset.sol";
+import "../src/NoFeeMarket.sol";
 import "../src/tokens/BioToken.sol";
-import "../src/Market.sol";
 
 contract MarketTest is Test, ERC1155Holder {
-    Market market;
+    NoFeeMarket market;
     Factory factory;
     BioToken biotoken;
 
     function setUp() public {
         biotoken = new BioToken();
-        market = new Market(address(biotoken));
+        market = new NoFeeMarket(address(biotoken));
         factory = new Factory(address(market));
     }
 
@@ -27,10 +31,10 @@ contract MarketTest is Test, ERC1155Holder {
         vm.deal(seller, 1 ether);
 
         vm.startPrank(seller);
-        address ipforsale = factory.createIP("http://x.one");
-        IntellectualProperty ip = IntellectualProperty(ipforsale);
+        address ipforsale = factory.createAsset("http://x.one");
+        BioAsset ip = BioAsset(ipforsale);
 
-        ip.register({
+        ip.registerWithMarket({
             _licensePrice: 2,
             _licenseQty: 10,
             _isIPForSale: true,
@@ -44,27 +48,15 @@ contract MarketTest is Test, ERC1155Holder {
         // Check number of licenses
         assertEq(10, ip.availableLicenses());
 
-        // Check the market
-        assertEq(1, market.numberOfProducts());
-
-        address[] memory list = market.getProducts();
-        assertEq(address(ip), list[0]);
-
         (uint256 lp, bool fs, uint256 ipp) = market.getProduct(address(ip));
         assertEq(2, lp);
         assertTrue(fs);
         assertEq(5, ipp);
     }
 
-    function testWontRegisterBadAddress() public {
-        // not an IP contract calling register...
-        vm.expectRevert("Market: not an IP contract");
-        market.registerProduct(10, true, 20);
-    }
-
     function testCantBuyAnythingNonIPAddress() public {
         vm.expectRevert("Market: product not found");
-        market.buyIP(address(this));
+        market.buyAsset(address(this));
 
         vm.expectRevert("Market: product not found");
         market.buyLicense(address(this), 10);
@@ -90,11 +82,11 @@ contract MarketTest is Test, ERC1155Holder {
 
         // Create IP and register for sale
         vm.startPrank(seller);
-        address ipforsale = factory.createIP("http://x.one");
-        IntellectualProperty ip = IntellectualProperty(ipforsale);
+        address ipforsale = factory.createAsset("http://x.one");
+        BioAsset ip = BioAsset(ipforsale);
 
         // Not IP price is 2 (not 1)
-        ip.register({
+        ip.registerWithMarket({
             _licensePrice: 0,
             _licenseQty: 0,
             _isIPForSale: true,
@@ -104,7 +96,7 @@ contract MarketTest is Test, ERC1155Holder {
 
         vm.startPrank(buyer);
         vm.expectRevert("Market: insufficient biotokens");
-        market.buyIP(ipforsale);
+        market.buyAsset(ipforsale);
         vm.stopPrank();
     }
 
@@ -130,10 +122,10 @@ contract MarketTest is Test, ERC1155Holder {
 
         // Create IP and register for sale
         vm.startPrank(seller);
-        address ipforsale = factory.createIP("http://x.one");
-        IntellectualProperty ip = IntellectualProperty(ipforsale);
+        address ipforsale = factory.createAsset("http://x.one");
+        BioAsset ip = BioAsset(ipforsale);
 
-        ip.register({
+        ip.registerWithMarket({
             _licensePrice: 0,
             _licenseQty: 0,
             _isIPForSale: true,
@@ -145,7 +137,7 @@ contract MarketTest is Test, ERC1155Holder {
 
         // Buy the IP
         vm.startPrank(buyer);
-        market.buyIP(ipforsale);
+        market.buyAsset(ipforsale);
         vm.stopPrank();
 
         // buyer balance is 1 less
@@ -167,9 +159,9 @@ contract MarketTest is Test, ERC1155Holder {
 
         // Create Licenses and register for sale
         vm.startPrank(seller);
-        address ipforsale = factory.createIP("http://x.one");
-        IntellectualProperty ip = IntellectualProperty(ipforsale);
-        ip.register({
+        address ipforsale = factory.createAsset("http://x.one");
+        BioAsset ip = BioAsset(ipforsale);
+        ip.registerWithMarket({
             _licensePrice: 1,
             _licenseQty: 5,
             _isIPForSale: false,
@@ -199,8 +191,8 @@ contract MarketTest is Test, ERC1155Holder {
         assertEq(3, biotoken.balanceOf(seller));
 
         // Try to buy IP that's not for sale
-        vm.expectRevert("Market: IP is not for sale");
-        market.buyIP(address(ip));
+        vm.expectRevert("Market: Asset is not for sale");
+        market.buyAsset(address(ip));
     }
 
     function testProvenanceOfIP() public {
@@ -226,9 +218,9 @@ contract MarketTest is Test, ERC1155Holder {
 
         // Bob creates
         vm.startPrank(bob);
-        address ipforsale = factory.createIP("http://x.one");
-        IntellectualProperty ip = IntellectualProperty(ipforsale);
-        ip.register({
+        address ipforsale = factory.createAsset("http://x.one");
+        BioAsset ip = BioAsset(ipforsale);
+        ip.registerWithMarket({
             _licensePrice: 1,
             _licenseQty: 5,
             _isIPForSale: true,
@@ -238,30 +230,34 @@ contract MarketTest is Test, ERC1155Holder {
 
         // alice buys
         vm.startPrank(alice);
-        market.buyIP(ipforsale);
+        market.buyAsset(ipforsale);
         vm.stopPrank();
         assertEq(alice, ip.owner());
 
         // tom buys
         vm.startPrank(tom);
-        market.buyIP(ipforsale);
+        market.buyAsset(ipforsale);
         vm.stopPrank();
         assertEq(tom, ip.owner());
 
         // dave buys
         vm.startPrank(dave);
-        market.buyIP(ipforsale);
+        market.buyAsset(ipforsale);
         vm.stopPrank();
         assertEq(dave, ip.owner());
 
         // Dave ups the price to sell to patrick :-)
         vm.startPrank(dave);
-        ip.update({_licensePrice: 1, _isIPForSale: true, _ipPrice: 2});
+        ip.updateWithMarket({
+            _licensePrice: 1,
+            _isIPForSale: true,
+            _ipPrice: 2
+        });
         vm.stopPrank();
 
         // pat buys
         vm.startPrank(pat);
-        market.buyIP(ipforsale);
+        market.buyAsset(ipforsale);
         vm.stopPrank();
         assertEq(pat, ip.owner());
 
@@ -277,8 +273,6 @@ contract MarketTest is Test, ERC1155Holder {
         assertEq(6, biotoken.balanceOf(dave));
         // spent 2
         assertEq(3, biotoken.balanceOf(pat));
-
-        assertEq(1, market.numberOfProducts());
     }
 
     function testSellLicensesAndIP() public {
@@ -298,10 +292,8 @@ contract MarketTest is Test, ERC1155Holder {
         // Bob creates IP with 10 licenses at a cost of 1 token each.
         // IP is for sale for 2 tokens
         vm.startPrank(bob);
-        IntellectualProperty ip = IntellectualProperty(
-            factory.createIP("http://x.one")
-        );
-        ip.register({
+        BioAsset ip = BioAsset(factory.createAsset("http://x.one"));
+        ip.registerWithMarket({
             _licensePrice: 1,
             _licenseQty: 10,
             _isIPForSale: true,
@@ -322,7 +314,7 @@ contract MarketTest is Test, ERC1155Holder {
 
         // Sells IP to Tom
         vm.startPrank(tom);
-        market.buyIP(address(ip));
+        market.buyAsset(address(ip));
         vm.stopPrank();
 
         assertEq(tom, ip.owner());

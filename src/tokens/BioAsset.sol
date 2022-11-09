@@ -5,22 +5,22 @@ pragma solidity ^0.8.16;
 import "openzepplin/token/ERC1155/ERC1155.sol";
 import "openzepplin/security/ReentrancyGuard.sol";
 
-import "../IMarket.sol";
+import "./IBioAsset.sol";
+import "../IAssetMarket.sol";
 
 /**
- * @notice Represents Intellectual Property and potentially many copyright (like) licenses.
- * A user can create an instance of this contract to assert ownership of their
- * IP (think NFT).  For now, the address of this contract represents a globally unique identifier
- * for the IP.
+ * @notice Represents an asset.  Used to track ownership, provenance, and transfers.
+ * A user can create an instance of this contract to assert ownership of their Asset(think NFT).
+ * For now, the address of this contract represents it's globally unique identifier
  *
- * Through this contract an owner can mint and sell copyright licenses for the given IP.
+ * Through this contract an owner can mint and sell copyright licenses.
  * Sales and transfers are handled via an independent 'Market' contract.  The owner can
- * also (optionally) sell and transfer the IP itself through the market.
+ * also (optionally) sell and transfer the Asset (and it's IP) through the market.
  *
- * Terms and conditions of the associated IP/Licenses are linked to this the contract
- * via a URL with strucutured metadata in the JSON format (todo).
+ * Metadata about the asset, such as terms/conditions, etc... are embedded in the event
+ * log for the contract
  *
- * All sales are conducted via BioTokens.
+ * All sales of an asset are conducted with BioTokens.
  *
  * @dev There's a single NFT represented by the id 1
  * There can be many licenses represented by the id 2
@@ -29,16 +29,16 @@ import "../IMarket.sol";
  *
  * Inspired by the Ocean Protocol
  */
-contract IntellectualProperty is ERC1155, ReentrancyGuard {
-    // token IDs
-    uint256 public constant IP = 1;
-    uint256 public constant LICENSE = 2;
+contract BioAsset is ERC1155, IBioAsset, ReentrancyGuard {
+    // Token IDs
+    uint8 public constant IP = 1;
+    uint8 public constant LICENSE = 2;
 
-    // IP owner
+    // Asset owner
     address private _owner;
 
-    // the market
-    IMarket private market;
+    // Market the asset uses
+    IAssetMarket private market;
 
     modifier onlyOwner() {
         require(msg.sender == _owner, "IP: not the owner");
@@ -46,39 +46,33 @@ contract IntellectualProperty is ERC1155, ReentrancyGuard {
     }
 
     /**
-     * @notice Create the IP, minting it to the address of the '_ipowner'. See Factory.sol
-     * @param _ipowner the caller to the Factory
-     * @param _uri the URI to the json file with metadata on this IP
+     * @notice Create an Asset, minting it to the address of the ' _assetOwner'. See Factory.sol
+     * @param  _assetOwner based on the caller to the Factory
+     * @param _uri the URI to the metadata of this asset. See indexer API
      * @param _market address of the deployed Market contract. See Factory
      */
     constructor(
-        address _ipowner,
+        address _assetOwner,
         string memory _uri,
         address _market
     ) ERC1155(_uri) {
         // We don't use msg.sender as the owner because the factory is
         // intended to create this contract - which would incorrectly make it the caller.
-        _owner = _ipowner;
-        market = IMarket(_market);
-        //market = _market;
+        _owner = _assetOwner;
+        market = IAssetMarket(_market);
         // mint *only* 1 IP to the owner (NFT)
         _mint(_owner, IP, 1, "");
     }
 
     /**
-     * @notice Register the IP with the market.  Can only be called once for a
-     * given IP.
-     * @param _licenseQty the number of licenses to mint
-     * @param _licensePrice the price per license in biotokens
-     * @param _isIPForSale is the IP available to buy
-     * @param _ipPrice cost of the IP in biotokens IFF it's for sale
+     * @dev See {IBioAsset}.
      */
-    function register(
+    function registerWithMarket(
         uint256 _licenseQty,
         uint256 _licensePrice,
         bool _isIPForSale,
         uint256 _ipPrice
-    ) external onlyOwner nonReentrant {
+    ) external onlyOwner {
         // NOTE: We use nonReentrant here because we're updating state
         // *after* we make an external call
 
@@ -87,52 +81,50 @@ contract IntellectualProperty is ERC1155, ReentrancyGuard {
 
         // Register with the market. It will revert IF the IP has
         // already been registered
-        market.registerProduct(_licensePrice, _isIPForSale, _ipPrice);
+        market.registerAsset(_licensePrice, _isIPForSale, _ipPrice);
 
         // Approve the market to trade on our behalf.  Also see _afterTransfer hook below
         setApprovalForAll(address(market), true);
     }
 
     /**
-     * @notice Update information about the product in the market
-     * @param _licensePrice the price per license in biotokens
-     * @param _isIPForSale is the IP available to buy
-     * @param _ipPrice cost of the IP in biotokens IFF it's for sale
+     * @dev See {IBioAsset}.
      */
-    function update(
+    function updateWithMarket(
         uint256 _licensePrice,
         bool _isIPForSale,
         uint256 _ipPrice
     ) external onlyOwner {
         // Will revert if the caller is not the owner of the IP
-        market.updateProduct(_licensePrice, _isIPForSale, _ipPrice);
+        market.updateAsset(_licensePrice, _isIPForSale, _ipPrice);
     }
-
-    function stopSelling() public onlyOwner {
-        // TODO: Don't delete the product just flag in storage??
-    }
-
-    // ** Helpers ** //
 
     /**
-     * @notice Return the owner of the IP
+     * @dev See {IBioAsset}.
+     */
+    function setMetaData(bytes calldata data) external onlyOwner {
+        emit MetaDataCreated(data);
+    }
+
+    /**
+     * @dev See {IBioAsset}.
+     */
+    function updateMetaData(bytes calldata data) external onlyOwner {
+        emit MetaDataUpdated(data);
+    }
+
+    /**
+     * @dev See {IBioAsset}.
      */
     function owner() external view returns (address) {
         return _owner;
     }
 
     /**
-     * @notice Return the number of licenses that are available by the owner
+     * @dev See {IBioAsset}.
      */
     function availableLicenses() public view returns (uint256) {
         return balanceOf(_owner, LICENSE);
-    }
-
-    /**
-     * @notice Return the URI of the metadata for this IP.
-     */
-    function licenseURI() public view returns (string memory) {
-        return uri(1);
     }
 
     // internal hook on transfer to track IP owners

@@ -6,7 +6,7 @@
   "description": "",
   "files": [
     "src/**/*.sol",
-    "build/contracts/**/*"
+    "artifacts/**/*"
   ],
   "repository": {
     "type": "git",

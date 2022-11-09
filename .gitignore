@@ -1,10 +1,7 @@
 # Compiler files
 cache/
 out/
-
-# Clean some JSON files
-build/contracts/*.t.sol
-build/contracts/*.s.sol
+build/
 
 # Ignores development broadcast logs
 !/broadcast

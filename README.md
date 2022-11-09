@@ -41,3 +41,10 @@ You can run all the tests with the following command:
  > forge test -vvv
 ```
 `-vvv` is for extra verbosity
+
+## Build
+For now we include the core `abis` in the repository (artifacts dir) so other projects can import the artifacts for use via `npm`.  However, this package is not yet published on `npm`, so install with `npm` using the github project URL.
+
+Before commiting new contract code, run `make artifacts` to update the `abis`
+
+

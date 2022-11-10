@@ -12,6 +12,8 @@ contract Factory {
     // pointer to deployed market
     address immutable market;
 
+    event BioAssetCreated(address indexed asset);
+
     /**
      * @notice Create a factory (once)
      * @param _market address deployed market
@@ -32,6 +34,8 @@ contract Factory {
         // Keep it simple for now...
         // TODO: CREATE/CREATE2
         BioAsset asset = new BioAsset(msg.sender, _uri, market);
+
+        emit BioAssetCreated(address(asset));
 
         return address(asset);
     }

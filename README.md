@@ -43,8 +43,16 @@ You can run all the tests with the following command:
 `-vvv` is for extra verbosity
 
 ## Build
-For now we include the core `abis` in the repository (artifacts dir) so other projects can import the artifacts for use via `npm`.  However, this package is not yet published on `npm`, so install with `npm` using the github project URL.
+For now we include the contract build files (json) in the repository (artifacts dir) so other projects can import the artifacts for use via `npm`.  However, this package is not yet published on `npm`, so install with `npm` using the github project URL:
 
-Before commiting new contract code, run `make artifacts` to update the `abis`
+`npm i https://github.com/synbionet/synbionet-core -S`
+
+You can than get the `abi` and `bytecode` by importing the json file:
+
+```js
+import biotokenabi from "@synbionet/contracts/artifacts/biotoken.json";
+```
+
+**Before commiting new contract code, run `make artifacts` to update the the json files**
 
 

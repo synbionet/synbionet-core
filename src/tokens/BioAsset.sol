@@ -60,6 +60,8 @@ contract BioAsset is ERC1155, IBioAsset, ReentrancyGuard {
         // intended to create this contract - which would incorrectly make it the caller.
         _owner = _assetOwner;
         market = IAssetMarket(_market);
+        // Emit metadata event
+        emit MetaDataCreated(_uri);
         // mint *only* 1 IP to the owner (NFT)
         _mint(_owner, IP, 1, "");
     }
@@ -102,15 +104,9 @@ contract BioAsset is ERC1155, IBioAsset, ReentrancyGuard {
     /**
      * @dev See {IBioAsset}.
      */
-    function setMetaData(bytes calldata data) external onlyOwner {
-        emit MetaDataCreated(data);
-    }
-
-    /**
-     * @dev See {IBioAsset}.
-     */
-    function updateMetaData(bytes calldata data) external onlyOwner {
-        emit MetaDataUpdated(data);
+    function updateMetaDataURI(string calldata _uri) external onlyOwner {
+        _setURI(_uri);
+        emit MetaDataUpdated(_uri);
     }
 
     /**

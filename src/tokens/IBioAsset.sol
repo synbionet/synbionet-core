@@ -8,26 +8,21 @@ pragma solidity ^0.8.16;
  */
 interface IBioAsset {
     /**
-     * @dev Emitted when owner calls `setMetaData`
+     * @dev Emitted when a contract is created. Recording the URI pointing
+     * to metadata for the contract.  We are using events as a way to track
+     * the history of any changes to the URI
      */
-    event MetaDataCreated(bytes data);
+    event MetaDataCreated(string uri);
 
     /**
-     * @dev Emitted when owner calls `updateMetaData`
+     * @dev Emitted when the owner changes the metadata URI
      */
-    event MetaDataUpdated(bytes data);
+    event MetaDataUpdated(string uri);
 
     /**
-     * @dev Sets the metadata in the event log (via event above).
-     * `data` should follow a defined format that can be extracted
-     * off-chain
+     * @dev Update the URI pointing to metadata
      */
-    function setMetaData(bytes calldata data) external;
-
-    /**
-     * @dev Updates the metadata via the event log.
-     */
-    function updateMetaData(bytes calldata data) external;
+    function updateMetaDataURI(string calldata uri) external;
 
     /**
      * @dev Register the asset with the market.  Can only be called once - enforced

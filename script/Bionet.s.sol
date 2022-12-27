@@ -42,7 +42,6 @@ contract BionetScript is Script {
         console2.log(address(bioToken));
         console2.log("bioasset address");
         console2.log(address(ip));
-        
         vm.stopBroadcast();
     }
 }
